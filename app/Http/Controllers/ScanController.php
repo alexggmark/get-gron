@@ -52,6 +52,7 @@ class ScanController extends Controller
                 'url' => $scan->url,
                 'cms_type' => $scan->cms_type,
                 'status' => $scan->status,
+                'failed_step' => $scan->failed_step,
                 'lighthouse_performance' => $scan->lighthouse_performance,
                 'lighthouse_accessibility' => $scan->lighthouse_accessibility,
                 'lighthouse_seo' => $scan->lighthouse_seo,

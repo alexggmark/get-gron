@@ -149,9 +149,9 @@ function formatScore(score: number | null): string {
                         We couldn't complete the scan for this website. Please check the URL and try again.
                     </CardDescription>
                 </CardHeader>
-                <CardContent v-if="scan.failed_step">
+                <CardContent>
                     <p class="text-sm text-muted-foreground">
-                        Failed during: <span class="font-medium text-destructive">{{ scan.failed_step }}</span>
+                        Failed during: <span class="font-medium text-destructive">{{ scan.failed_step ?? 'unknown step' }}</span>
                     </p>
                 </CardContent>
             </Card>

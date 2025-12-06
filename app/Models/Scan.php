@@ -10,6 +10,7 @@ class Scan extends Model
         'url',
         'cms_type',
         'status',
+        'failed_step',
         'lighthouse_performance',
         'lighthouse_accessibility',
         'lighthouse_seo',
