@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Scan;
-use Dzava\Lighthouse\Lighthouse;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -113,18 +112,26 @@ class AnalyzeWebsite implements ShouldQueue
     protected function analyzeLighthouse(): array
     {
         try {
-            $lighthouse = new Lighthouse();
+            $apiKey = config('services.google.pagespeed_api_key');
+            $apiUrl = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 
-            $report = $lighthouse
-                ->setLighthousePath(config('services.lighthouse.path', '/usr/local/bin/lighthouse'))
-                ->setChromePath(config('services.lighthouse.chrome_path', '/usr/bin/google-chrome'))
-                ->setOutputFormat('json')
-                ->performance()
-                ->accessibility()
-                ->seo()
-                ->audit($this->scan->url);
+            $params = [
+                'url' => $this->scan->url,
+                'category' => ['performance', 'accessibility', 'seo'],
+                'strategy' => 'desktop',
+            ];
 
-            $results = json_decode(file_get_contents($report), true);
+            if ($apiKey) {
+                $params['key'] = $apiKey;
+            }
+
+            $response = Http::timeout(120)->get($apiUrl, $params);
+
+            if (!$response->successful()) {
+                throw new \RuntimeException('PageSpeed API request failed: ' . $response->status());
+            }
+
+            $results = $response->json();
 
             return [
                 'lighthouse_performance' => $this->extractLighthouseScore($results, 'performance'),
@@ -147,7 +154,8 @@ class AnalyzeWebsite implements ShouldQueue
 
     protected function extractLighthouseScore(array $results, string $category): ?int
     {
-        $score = $results['categories'][$category]['score'] ?? null;
+        // PageSpeed API nests scores under lighthouseResult.categories
+        $score = $results['lighthouseResult']['categories'][$category]['score'] ?? null;
 
         return $score !== null ? (int) round($score * 100) : null;
     }
