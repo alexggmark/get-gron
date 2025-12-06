@@ -32,23 +32,44 @@ class AnalyzeWebsite implements ShouldQueue
 
     public function handle(): void
     {
+        $currentStep = 'initializing';
+
         try {
             $this->scan->update(['status' => 'processing']);
 
+            $currentStep = 'fetchUrl';
             $this->fetchUrl();
 
-            $results = [
-                ...$this->analyzeLighthouse(),
-                ...$this->analyzeCtaElements(),
-                ...$this->analyzeFormFriction(),
-                ...$this->analyzeTrustSignals(),
-                ...$this->analyzeMobileViewport(),
-                ...$this->analyzeReadability(),
-                ...$this->analyzeImageOptimization(),
-                ...$this->analyzeSchemaMarkup(),
-                'screenshot_path' => $this->captureScreenshot(),
-            ];
+            $results = [];
 
+            $currentStep = 'analyzeLighthouse';
+            $results = [...$results, ...$this->analyzeLighthouse()];
+
+            $currentStep = 'analyzeCtaElements';
+            $results = [...$results, ...$this->analyzeCtaElements()];
+
+            $currentStep = 'analyzeFormFriction';
+            $results = [...$results, ...$this->analyzeFormFriction()];
+
+            $currentStep = 'analyzeTrustSignals';
+            $results = [...$results, ...$this->analyzeTrustSignals()];
+
+            $currentStep = 'analyzeMobileViewport';
+            $results = [...$results, ...$this->analyzeMobileViewport()];
+
+            $currentStep = 'analyzeReadability';
+            $results = [...$results, ...$this->analyzeReadability()];
+
+            $currentStep = 'analyzeImageOptimization';
+            $results = [...$results, ...$this->analyzeImageOptimization()];
+
+            $currentStep = 'analyzeSchemaMarkup';
+            $results = [...$results, ...$this->analyzeSchemaMarkup()];
+
+            $currentStep = 'captureScreenshot';
+            $results['screenshot_path'] = $this->captureScreenshot();
+
+            $currentStep = 'saving results';
             $this->scan->update([
                 ...$results,
                 'status' => 'completed',
@@ -57,11 +78,15 @@ class AnalyzeWebsite implements ShouldQueue
             Log::error('Website analysis failed', [
                 'scan_id' => $this->scan->id,
                 'url' => $this->scan->url,
+                'failed_step' => $currentStep,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            $this->scan->update(['status' => 'failed']);
+            $this->scan->update([
+                'status' => 'failed',
+                'failed_step' => $currentStep,
+            ]);
 
             throw $e;
         }

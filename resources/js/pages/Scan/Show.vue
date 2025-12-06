@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
+// import AppLayout from '@/layouts/AppLayout.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { Head, router } from '@inertiajs/vue3'
@@ -12,6 +12,7 @@ interface Scan {
     url: string
     cms_type: string | null
     status: 'pending' | 'processing' | 'completed' | 'failed'
+    failed_step: string | null
     lighthouse_performance: number | null
     lighthouse_accessibility: number | null
     lighthouse_seo: number | null
@@ -42,10 +43,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Scans', href: create.url() },
-    { title: props.scan.url, href: show.url(props.scan.id) },
-]
+// const breadcrumbs: BreadcrumbItem[] = [
+//     { title: 'Scans', href: create.url() },
+//     { title: props.scan.url, href: show.url(props.scan.id) },
+// ]
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
@@ -148,6 +149,11 @@ function formatScore(score: number | null): string {
                         We couldn't complete the scan for this website. Please check the URL and try again.
                     </CardDescription>
                 </CardHeader>
+                <CardContent v-if="scan.failed_step">
+                    <p class="text-sm text-muted-foreground">
+                        Failed during: <span class="font-medium text-destructive">{{ scan.failed_step }}</span>
+                    </p>
+                </CardContent>
             </Card>
 
             <!-- Results Dashboard -->

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
+// import AppLayout from '@/layouts/AppLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,10 +15,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Scans', href: create.url() },
-    { title: 'New Scan', href: create.url() },
-]
+// const breadcrumbs: BreadcrumbItem[] = [
+//     { title: 'Scans', href: create.url() },
+//     { title: 'New Scan', href: create.url() },
+// ]
 
 const form = useForm({
     url: '',
