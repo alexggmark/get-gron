@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
@@ -112,26 +113,38 @@ class AnalyzeWebsite implements ShouldQueue
     protected function analyzeLighthouse(): array
     {
         try {
-            $apiKey = config('services.google.pagespeed_api_key');
-            $apiUrl = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
+            $outputFile = storage_path('app/lighthouse-' . Str::uuid() . '.json');
 
-            $params = [
-                'url' => $this->scan->url,
-                'category' => ['performance', 'accessibility', 'seo'],
-                'strategy' => 'desktop',
+            $lighthousePath = base_path('node_modules/.bin/lighthouse');
+
+            $command = [
+                $lighthousePath,
+                $this->scan->url,
+                '--output=json',
+                '--output-path=' . $outputFile,
+                '--chrome-flags=--headless --no-sandbox --disable-gpu --disable-dev-shm-usage',
+                '--only-categories=performance,accessibility,seo',
+                '--quiet',
             ];
 
-            if ($apiKey) {
-                $params['key'] = $apiKey;
+            $result = Process::timeout(120)->run($command);
+
+            if (!$result->successful() && !file_exists($outputFile)) {
+                throw new \RuntimeException('Lighthouse CLI failed: ' . $result->errorOutput());
             }
 
-            $response = Http::timeout(120)->get($apiUrl, $params);
-
-            if (!$response->successful()) {
-                throw new \RuntimeException('PageSpeed API request failed: ' . $response->status());
+            if (!file_exists($outputFile)) {
+                throw new \RuntimeException('Lighthouse output file not created');
             }
 
-            $results = $response->json();
+            $jsonContent = file_get_contents($outputFile);
+            $results = json_decode($jsonContent, true);
+
+            @unlink($outputFile);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \RuntimeException('Failed to parse Lighthouse JSON output');
+            }
 
             return [
                 'lighthouse_performance' => $this->extractLighthouseScore($results, 'performance'),
@@ -154,8 +167,8 @@ class AnalyzeWebsite implements ShouldQueue
 
     protected function extractLighthouseScore(array $results, string $category): ?int
     {
-        // PageSpeed API nests scores under lighthouseResult.categories
-        $score = $results['lighthouseResult']['categories'][$category]['score'] ?? null;
+        // Lighthouse CLI outputs scores directly under categories
+        $score = $results['categories'][$category]['score'] ?? null;
 
         return $score !== null ? (int) round($score * 100) : null;
     }

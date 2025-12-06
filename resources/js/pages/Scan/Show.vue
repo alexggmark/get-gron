@@ -108,273 +108,275 @@ function formatScore(score: number | null): string {
     <Head :title="`Scan - ${scan.url}`" />
 
     <!-- <AppLayout :breadcrumbs="breadcrumbs"> -->
-        <div class="p-6 space-y-6">
-            <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">{{ scan.url }}</h1>
-                    <p class="text-muted-foreground">
-                        <span v-if="scan.cms_type" class="capitalize">{{ scan.cms_type }} &middot; </span>
-                        Scanned {{ new Date(scan.created_at).toLocaleDateString() }}
-                    </p>
+        <div class="p-6 space-y-6 flex justify-center">
+            <div class="max-w-3xl flex flex-col gap-3">
+                <!-- Header -->
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ scan.url }}</h1>
+                        <p class="text-muted-foreground">
+                            <span v-if="scan.cms_type" class="capitalize">{{ scan.cms_type }} &middot; </span>
+                            Scanned {{ new Date(scan.created_at).toLocaleDateString() }}
+                        </p>
+                    </div>
+                    <div
+                        :class="[
+                            'px-3 py-1 rounded-full text-sm font-medium capitalize',
+                            scan.status === 'completed' ? 'bg-green-500/10 text-green-500' : '',
+                            scan.status === 'failed' ? 'bg-red-500/10 text-red-500' : '',
+                            ['pending', 'processing'].includes(scan.status) ? 'bg-blue-500/10 text-blue-500' : '',
+                        ]"
+                    >
+                        {{ scan.status }}
+                    </div>
                 </div>
-                <div
-                    :class="[
-                        'px-3 py-1 rounded-full text-sm font-medium capitalize',
-                        scan.status === 'completed' ? 'bg-green-500/10 text-green-500' : '',
-                        scan.status === 'failed' ? 'bg-red-500/10 text-red-500' : '',
-                        ['pending', 'processing'].includes(scan.status) ? 'bg-blue-500/10 text-blue-500' : '',
-                    ]"
-                >
-                    {{ scan.status }}
-                </div>
-            </div>
 
-            <!-- Loading State -->
-            <Card v-if="isLoading" class="py-12">
-                <CardContent class="flex flex-col items-center justify-center text-center">
-                    <Spinner class="size-8 mb-4" />
-                    <h3 class="text-lg font-medium">Analyzing your website...</h3>
-                    <p class="text-muted-foreground mt-1">
-                        This may take a minute. We're checking performance, CTAs, forms, and more.
-                    </p>
-                </CardContent>
-            </Card>
+                <!-- Loading State -->
+                <Card v-if="isLoading" class="py-12">
+                    <CardContent class="flex flex-col items-center justify-center text-center">
+                        <Spinner class="size-8 mb-4" />
+                        <h3 class="text-lg font-medium">Analyzing your website...</h3>
+                        <p class="text-muted-foreground mt-1">
+                            This may take a minute. We're checking performance, CTAs, forms, and more.
+                        </p>
+                    </CardContent>
+                </Card>
 
-            <!-- Failed State -->
-            <Card v-else-if="scan.status === 'failed'" class="border-destructive">
-                <CardHeader>
-                    <CardTitle class="text-destructive">Scan Failed</CardTitle>
-                    <CardDescription>
-                        We couldn't complete the scan for this website. Please check the URL and try again.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p class="text-sm text-muted-foreground">
-                        Failed during: <span class="font-medium text-destructive">{{ scan.failed_step ?? 'unknown step' }}</span>
-                    </p>
-                </CardContent>
-            </Card>
-
-            <!-- Results Dashboard -->
-            <template v-else>
-                <!-- Overall Score -->
-                <Card v-if="scan.overall_score !== null">
+                <!-- Failed State -->
+                <Card v-else-if="scan.status === 'failed'" class="border-destructive">
                     <CardHeader>
-                        <CardTitle>Overall Score</CardTitle>
-                        <CardDescription>Combined score across all metrics</CardDescription>
+                        <CardTitle class="text-destructive">Scan Failed</CardTitle>
+                        <CardDescription>
+                            We couldn't complete the scan for this website. Please check the URL and try again.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div class="flex items-center gap-4">
-                            <div
-                                :class="[
-                                    'size-24 rounded-full flex items-center justify-center text-3xl font-bold',
-                                    getScoreBgColor(scan.overall_score),
-                                    getScoreColor(scan.overall_score),
-                                ]"
-                            >
-                                {{ formatScore(scan.overall_score) }}
-                            </div>
-                            <div class="flex-1">
-                                <div class="h-3 bg-muted rounded-full overflow-hidden">
-                                    <div
-                                        class="h-full transition-all duration-500"
-                                        :class="[
-                                            scan.overall_score >= 90 ? 'bg-green-500' : '',
-                                            scan.overall_score >= 50 && scan.overall_score < 90 ? 'bg-yellow-500' : '',
-                                            scan.overall_score < 50 ? 'bg-red-500' : '',
-                                        ]"
-                                        :style="{ width: `${scan.overall_score}%` }"
-                                    />
+                        <p class="text-sm text-muted-foreground">
+                            Failed during: <span class="font-medium text-destructive">{{ scan.failed_step ?? 'unknown step' }}</span>
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <!-- Results Dashboard -->
+                <template v-else>
+                    <!-- Overall Score -->
+                    <Card v-if="scan.overall_score !== null">
+                        <CardHeader>
+                            <CardTitle>Overall Score</CardTitle>
+                            <CardDescription>Combined score across all metrics</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex items-center gap-4">
+                                <div
+                                    :class="[
+                                        'size-24 rounded-full flex items-center justify-center text-3xl font-bold',
+                                        getScoreBgColor(scan.overall_score),
+                                        getScoreColor(scan.overall_score),
+                                    ]"
+                                >
+                                    {{ formatScore(scan.overall_score) }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="h-3 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                            class="h-full transition-all duration-500"
+                                            :class="[
+                                                scan.overall_score >= 90 ? 'bg-green-500' : '',
+                                                scan.overall_score >= 50 && scan.overall_score < 90 ? 'bg-yellow-500' : '',
+                                                scan.overall_score < 50 ? 'bg-red-500' : '',
+                                            ]"
+                                            :style="{ width: `${scan.overall_score}%` }"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Screenshot -->
-                <Card v-if="scan.screenshot_url">
-                    <CardHeader>
-                        <CardTitle>Page Screenshot</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <img
-                            :src="scan.screenshot_url"
-                            :alt="`Screenshot of ${scan.url}`"
-                            class="rounded-lg border w-full"
-                        />
-                    </CardContent>
-                </Card>
-
-                <!-- Lighthouse Scores -->
-                <div class="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Performance</CardDescription>
-                            <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_performance)]">
-                                {{ formatScore(scan.lighthouse_performance) }}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Accessibility</CardDescription>
-                            <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_accessibility)]">
-                                {{ formatScore(scan.lighthouse_accessibility) }}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>SEO</CardDescription>
-                            <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_seo)]">
-                                {{ formatScore(scan.lighthouse_seo) }}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
-
-                <!-- CTA Analysis -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Call-to-Action Analysis</CardTitle>
-                        <CardDescription>
-                            {{ scan.cta_count ?? 0 }} CTAs found on the page
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex items-center gap-4">
-                            <div
-                                :class="[
-                                    'size-16 rounded-full flex items-center justify-center text-xl font-bold',
-                                    getScoreBgColor(scan.cta_score),
-                                    getScoreColor(scan.cta_score),
-                                ]"
-                            >
-                                {{ formatScore(scan.cta_score) }}
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium">CTA Score</p>
-                                <p class="text-sm text-muted-foreground">
-                                    Measures visibility, placement, and effectiveness of your CTAs
-                                </p>
-                            </div>
-                        </div>
-                        <div v-if="scan.cta_details" class="mt-4 p-4 bg-muted rounded-lg">
-                            <pre class="text-xs overflow-auto">{{ JSON.stringify(scan.cta_details, null, 2) }}</pre>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Form Analysis -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Friction Analysis</CardTitle>
-                        <CardDescription>
-                            {{ scan.form_count ?? 0 }} forms found on the page
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex items-center gap-4">
-                            <div
-                                :class="[
-                                    'size-16 rounded-full flex items-center justify-center text-xl font-bold',
-                                    getScoreBgColor(scan.form_friction_score),
-                                    getScoreColor(scan.form_friction_score),
-                                ]"
-                            >
-                                {{ formatScore(scan.form_friction_score) }}
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium">Form Friction Score</p>
-                                <p class="text-sm text-muted-foreground">
-                                    Lower friction means easier form completion for users
-                                </p>
-                            </div>
-                        </div>
-                        <div v-if="scan.form_details" class="mt-4 p-4 bg-muted rounded-lg">
-                            <pre class="text-xs overflow-auto">{{ JSON.stringify(scan.form_details, null, 2) }}</pre>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Additional Metrics Grid -->
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Trust Signals</CardDescription>
-                            <CardTitle class="text-2xl">
-                                {{ scan.trust_signal_count ?? 0 }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-xs text-muted-foreground">
-                                Badges, testimonials, security indicators found
-                            </p>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Mobile Issues</CardDescription>
-                            <CardTitle :class="['text-2xl', (scan.mobile_issue_count ?? 0) > 0 ? 'text-yellow-500' : 'text-green-500']">
-                                {{ scan.mobile_issue_count ?? 0 }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-xs text-muted-foreground">
-                                Problems affecting mobile user experience
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Image Issues</CardDescription>
-                            <CardTitle :class="['text-2xl', (scan.image_issue_count ?? 0) > 0 ? 'text-yellow-500' : 'text-green-500']">
-                                {{ scan.image_issue_count ?? 0 }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-xs text-muted-foreground">
-                                Missing alt text, large images, etc.
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardDescription>Readability</CardDescription>
-                            <CardTitle :class="['text-2xl', getScoreColor(scan.readability_score)]">
-                                {{ formatScore(scan.readability_score) }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-xs text-muted-foreground">
-                                How easy your content is to read
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
 
-                <!-- Schema Detection -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Structured Data</CardTitle>
-                        <CardDescription>Schema.org markup detection</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex items-center gap-2">
-                            <div
-                                :class="[
-                                    'size-3 rounded-full',
-                                    scan.schema_detected ? 'bg-green-500' : 'bg-red-500',
-                                ]"
+                    <!-- Screenshot -->
+                    <Card v-if="scan.screenshot_url">
+                        <CardHeader>
+                            <CardTitle>Page Screenshot</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <img
+                                :src="scan.screenshot_url"
+                                :alt="`Screenshot of ${scan.url}`"
+                                class="rounded-lg border w-full"
                             />
-                            <span>
-                                {{ scan.schema_detected ? 'Schema markup detected' : 'No schema markup found' }}
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
-            </template>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Lighthouse Scores -->
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Performance</CardDescription>
+                                <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_performance)]">
+                                    {{ formatScore(scan.lighthouse_performance) }}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Accessibility</CardDescription>
+                                <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_accessibility)]">
+                                    {{ formatScore(scan.lighthouse_accessibility) }}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>SEO</CardDescription>
+                                <CardTitle :class="['text-3xl', getScoreColor(scan.lighthouse_seo)]">
+                                    {{ formatScore(scan.lighthouse_seo) }}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
+
+                    <!-- CTA Analysis -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Call-to-Action Analysis</CardTitle>
+                            <CardDescription>
+                                {{ scan.cta_count ?? 0 }} CTAs found on the page
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex items-center gap-4">
+                                <div
+                                    :class="[
+                                        'size-16 rounded-full flex items-center justify-center text-xl font-bold',
+                                        getScoreBgColor(scan.cta_score),
+                                        getScoreColor(scan.cta_score),
+                                    ]"
+                                >
+                                    {{ formatScore(scan.cta_score) }}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium">CTA Score</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        Measures visibility, placement, and effectiveness of your CTAs
+                                    </p>
+                                </div>
+                            </div>
+                            <div v-if="scan.cta_details" class="mt-4 p-4 bg-muted rounded-lg">
+                                <pre class="text-xs overflow-auto">{{ JSON.stringify(scan.cta_details, null, 2) }}</pre>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Form Analysis -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Form Friction Analysis</CardTitle>
+                            <CardDescription>
+                                {{ scan.form_count ?? 0 }} forms found on the page
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex items-center gap-4">
+                                <div
+                                    :class="[
+                                        'size-16 rounded-full flex items-center justify-center text-xl font-bold',
+                                        getScoreBgColor(scan.form_friction_score),
+                                        getScoreColor(scan.form_friction_score),
+                                    ]"
+                                >
+                                    {{ formatScore(scan.form_friction_score) }}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium">Form Friction Score</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        Lower friction means easier form completion for users
+                                    </p>
+                                </div>
+                            </div>
+                            <div v-if="scan.form_details" class="mt-4 p-4 bg-muted rounded-lg">
+                                <pre class="text-xs overflow-auto">{{ JSON.stringify(scan.form_details, null, 2) }}</pre>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Additional Metrics Grid -->
+                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Trust Signals</CardDescription>
+                                <CardTitle class="text-2xl">
+                                    {{ scan.trust_signal_count ?? 0 }}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p class="text-xs text-muted-foreground">
+                                    Badges, testimonials, security indicators found
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Mobile Issues</CardDescription>
+                                <CardTitle :class="['text-2xl', (scan.mobile_issue_count ?? 0) > 0 ? 'text-yellow-500' : 'text-green-500']">
+                                    {{ scan.mobile_issue_count ?? 0 }}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p class="text-xs text-muted-foreground">
+                                    Problems affecting mobile user experience
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Image Issues</CardDescription>
+                                <CardTitle :class="['text-2xl', (scan.image_issue_count ?? 0) > 0 ? 'text-yellow-500' : 'text-green-500']">
+                                    {{ scan.image_issue_count ?? 0 }}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p class="text-xs text-muted-foreground">
+                                    Missing alt text, large images, etc.
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader class="pb-2">
+                                <CardDescription>Readability</CardDescription>
+                                <CardTitle :class="['text-2xl', getScoreColor(scan.readability_score)]">
+                                    {{ formatScore(scan.readability_score) }}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p class="text-xs text-muted-foreground">
+                                    How easy your content is to read
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <!-- Schema Detection -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Structured Data</CardTitle>
+                            <CardDescription>Schema.org markup detection</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex items-center gap-2">
+                                <div
+                                    :class="[
+                                        'size-3 rounded-full',
+                                        scan.schema_detected ? 'bg-green-500' : 'bg-red-500',
+                                    ]"
+                                />
+                                <span>
+                                    {{ scan.schema_detected ? 'Schema markup detected' : 'No schema markup found' }}
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </template>
+            </div>
         </div>
     <!-- </AppLayout> -->
 </template>
