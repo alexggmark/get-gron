@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Scan extends Model
 {
     protected $fillable = [
+        'user_id',
         'url',
         'cms_type',
         'status',
@@ -123,5 +125,10 @@ class Scan extends Model
         }
 
         return asset('storage/' . $this->screenshot_path);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

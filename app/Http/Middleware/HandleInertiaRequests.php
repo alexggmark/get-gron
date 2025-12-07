@@ -46,6 +46,17 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'userScans' => $request->user()?->scans()
+                ->select(['id', 'url', 'status', 'overall_score', 'created_at'])
+                ->take(20)
+                ->get()
+                ->map(fn ($scan) => [
+                    'id' => $scan->id,
+                    'url' => $scan->url,
+                    'status' => $scan->status,
+                    'overall_score' => $scan->overall_score,
+                    'created_at' => $scan->created_at->toIso8601String(),
+                ]) ?? [],
         ];
     }
 }

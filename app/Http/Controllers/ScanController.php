@@ -34,6 +34,7 @@ class ScanController extends Controller
         ]);
 
         $scan = Scan::create([
+            'user_id' => $request->user()?->id,
             'url' => $validated['url'],
             'cms_type' => $validated['cms_type'] ?? null,
             'status' => 'pending',
