@@ -7,7 +7,12 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return Inertia::render('auth/Login', [
+        'canResetPassword' => Features::enabled(Features::resetPasswords()),
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
