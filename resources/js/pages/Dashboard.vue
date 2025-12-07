@@ -4,7 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Head, router } from '@inertiajs/vue3';
+import { Search } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Scan {
@@ -127,6 +130,23 @@ function formatScore(score: number | null): string {
     if (score === null) return '-';
     return Math.round(score).toString();
 }
+
+const url = ref('');
+const isSubmitting = ref(false);
+
+function submitScan() {
+    if (!url.value || isSubmitting.value) return;
+
+    isSubmitting.value = true;
+    router.post('/dashboard/scan', { url: url.value }, {
+        onSuccess: () => {
+            url.value = '';
+        },
+        onFinish: () => {
+            isSubmitting.value = false;
+        },
+    });
+}
 </script>
 
 <template>
@@ -138,10 +158,27 @@ function formatScore(score: number | null): string {
             <template v-if="!selectedScan">
                 <div class="flex flex-1 items-center justify-center">
                     <div class="text-center max-w-md">
-                        <h2 class="text-2xl font-bold tracking-tight mb-2">Welcome to your Dashboard</h2>
-                        <p class="text-muted-foreground">
-                            Enter a URL in the sidebar to scan a website and analyze its performance, CTAs, forms, and more.
+                        <h2 class="text-2xl font-bold tracking-tight mb-2">Scan a Website</h2>
+                        <p class="text-muted-foreground mb-6">
+                            Enter a URL to analyze its performance, CTAs, forms, and more.
                         </p>
+                        <form @submit.prevent="submitScan" class="flex gap-2">
+                            <Input
+                                v-model="url"
+                                type="url"
+                                placeholder="https://example.com"
+                                class="flex-1"
+                                :disabled="isSubmitting"
+                            />
+                            <Button
+                                type="submit"
+                                :disabled="!url || isSubmitting"
+                            >
+                                <Spinner v-if="isSubmitting" class="size-4 mr-2" />
+                                <Search v-else class="size-4 mr-2" />
+                                Scan
+                            </Button>
+                        </form>
                     </div>
                 </div>
             </template>
