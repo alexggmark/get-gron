@@ -52,6 +52,15 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        // Auto-mark stale scans as failed (e.g., if worker was killed)
+        if ($scan->isStale()) {
+            $scan->update([
+                'status' => 'failed',
+                'failed_step' => 'timeout',
+            ]);
+            $scan->refresh();
+        }
+
         return $this->formatScan($scan);
     }
 

@@ -60,6 +60,22 @@ class Scan extends Model
         return $this->status === 'failed';
     }
 
+    public function isStale(): bool
+    {
+        // Consider a scan stale if it's been processing for more than 5 minutes
+        return $this->isProcessing() && $this->updated_at->lt(now()->subMinutes(5));
+    }
+
+    public static function markStaleAsFailed(): int
+    {
+        return static::where('status', 'processing')
+            ->where('updated_at', '<', now()->subMinutes(5))
+            ->update([
+                'status' => 'failed',
+                'failed_step' => 'timeout',
+            ]);
+    }
+
     public function getOverallScoreAttribute(): ?int
     {
         $scores = array_filter([

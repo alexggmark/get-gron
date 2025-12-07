@@ -826,12 +826,13 @@ class AnalyzeWebsite implements ShouldQueue
 
             // Capture screenshot at 1920x2000px (above-the-fold focus)
             // Limited height prevents memory issues during annotation
+            // fullPage(false) ensures we only capture the viewport, not the entire scrollable page
             Browsershot::url($this->scan->url)
-                ->windowSize(1920, 2000)
+                ->windowSize(1920, 2000)              // viewport
+                ->clip(0, 0, 1920, 2000)              // x, y, width, height
                 ->setOption('waitUntil', 'domcontentloaded')
-                ->timeout(60000)
+                ->timeout(20000)
                 ->delay(3000)
-                ->clip(0, 0, 1920, 2000)
                 ->save($path);
 
             // Annotate the screenshot with CTA rectangles and fold line
