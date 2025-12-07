@@ -185,7 +185,7 @@ function submitScan() {
 
             <!-- Scan selected - show results -->
             <template v-else>
-                <div class="max-w-4xl mx-auto w-full space-y-6">
+                <div class="max-w-2xl mx-auto w-full space-y-6">
                     <!-- Header -->
                     <div class="flex items-start justify-between">
                         <div>

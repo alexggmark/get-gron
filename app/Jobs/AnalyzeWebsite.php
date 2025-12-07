@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use Spatie\Browsershot\Browsershot;
 use Symfony\Component\DomCrawler\Crawler;
 use Throwable;
@@ -67,7 +69,7 @@ class AnalyzeWebsite implements ShouldQueue
             $results = [...$results, ...$this->analyzeSchemaMarkup()];
 
             $currentStep = 'captureScreenshot';
-            $results['screenshot_path'] = $this->captureScreenshot();
+            $results['screenshot_path'] = $this->captureScreenshot($results['cta_details'] ?? []);
 
             $currentStep = 'saving results';
             $this->scan->update([
@@ -235,10 +237,92 @@ class AnalyzeWebsite implements ShouldQueue
             $score = 0;
         }
 
+        // Get CTA coordinates using Browsershot for screenshot annotation
+        $ctaCoordinates = $this->getCtaCoordinates($ctaPatterns);
+
+        Log::debug('CTA coordinates from Browsershot', [
+            'scan_id' => $this->scan->id,
+            'coordinates' => $ctaCoordinates,
+        ]);
+
+        // Merge coordinates into cta_details where text matches
+        // Use fuzzy matching to handle whitespace/text differences
+        foreach ($ctaDetails as &$cta) {
+            $ctaText = $this->normalizeText($cta['text']);
+            foreach ($ctaCoordinates as $coord) {
+                $coordText = $this->normalizeText($coord['text']);
+                // Match if texts are equal or one contains the other
+                if ($ctaText === $coordText || str_contains($ctaText, $coordText) || str_contains($coordText, $ctaText)) {
+                    $cta['x'] = $coord['x'];
+                    $cta['y'] = $coord['y'];
+                    $cta['width'] = $coord['width'];
+                    $cta['height'] = $coord['height'];
+                    Log::debug('Matched CTA coordinates', [
+                        'scan_id' => $this->scan->id,
+                        'cta_text' => $cta['text'],
+                        'coord_text' => $coord['text'],
+                        'coords' => [$coord['x'], $coord['y'], $coord['width'], $coord['height']],
+                    ]);
+                    break;
+                }
+            }
+        }
+
         return [
             'cta_score' => max(0, min(100, $score)),
             'cta_details' => $ctaDetails,
         ];
+    }
+
+    protected function getCtaCoordinates(array $ctaPatterns): array
+    {
+        try {
+            $patternsJson = json_encode($ctaPatterns);
+
+            $script = <<<JS
+                (() => {
+                    const patterns = {$patternsJson};
+                    const selectors = 'button, a.btn, a.button, [role="button"], input[type="submit"], .cta';
+                    const elements = document.querySelectorAll(selectors);
+                    const results = [];
+
+                    elements.forEach(el => {
+                        const text = el.textContent.toLowerCase().trim();
+                        for (const pattern of patterns) {
+                            if (text.includes(pattern)) {
+                                const rect = el.getBoundingClientRect();
+                                results.push({
+                                    text: el.textContent.trim(),
+                                    x: Math.round(rect.left + window.scrollX),
+                                    y: Math.round(rect.top + window.scrollY),
+                                    width: Math.round(rect.width),
+                                    height: Math.round(rect.height)
+                                });
+                                break;
+                            }
+                        }
+                    });
+
+                    return results;
+                })();
+            JS;
+
+            $coordinates = Browsershot::url($this->scan->url)
+                ->windowSize(1920, 1080)
+                ->setOption('waitUntil', 'domcontentloaded')
+                ->timeout(60000)
+                ->delay(3000)
+                ->evaluate($script);
+
+            return is_array($coordinates) ? $coordinates : [];
+        } catch (Throwable $e) {
+            Log::warning('Failed to get CTA coordinates', [
+                'scan_id' => $this->scan->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
     }
 
     protected function analyzeFormFriction(): array
@@ -431,7 +515,9 @@ class AnalyzeWebsite implements ShouldQueue
             $browsershot = Browsershot::url($this->scan->url)
                 ->windowSize(375, 812) // iPhone X dimensions
                 ->userAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1')
-                ->waitUntilNetworkIdle();
+                ->setOption('waitUntil', 'domcontentloaded')
+                ->timeout(60000)
+                ->delay(3000);
 
             $pageWidth = $browsershot->evaluate('document.documentElement.scrollWidth');
             $viewportWidth = 375;
@@ -729,20 +815,27 @@ class AnalyzeWebsite implements ShouldQueue
         ];
     }
 
-    protected function captureScreenshot(): ?string
+    protected function captureScreenshot(array $ctaDetails = []): ?string
     {
         try {
-            $filename = 'screenshots/' . Str::uuid() . '.png';
+            $filename = 'screenshots/' . $this->scan->id . '.png';
 
             Storage::disk('public')->makeDirectory('screenshots');
 
             $path = Storage::disk('public')->path($filename);
 
+            // Capture screenshot at 1920x2000px (above-the-fold focus)
+            // Limited height prevents memory issues during annotation
             Browsershot::url($this->scan->url)
-                ->windowSize(1920, 1080)
-                ->fullPage()
-                ->waitUntilNetworkIdle()
+                ->windowSize(1920, 2000)
+                ->setOption('waitUntil', 'domcontentloaded')
+                ->timeout(60000)
+                ->delay(3000)
+                ->clip(0, 0, 1920, 2000)
                 ->save($path);
+
+            // Annotate the screenshot with CTA rectangles and fold line
+            $this->annotateScreenshot($path, $ctaDetails);
 
             return $filename;
         } catch (Throwable $e) {
@@ -753,6 +846,98 @@ class AnalyzeWebsite implements ShouldQueue
 
             return null;
         }
+    }
+
+    protected function annotateScreenshot(string $path, array $ctaDetails): void
+    {
+        try {
+            Log::info('ANNOTATION_START: Annotating screenshot', [
+                'scan_id' => $this->scan->id,
+                'path' => $path,
+                'path_exists' => file_exists($path),
+                'cta_count' => count($ctaDetails),
+                'cta_details' => $ctaDetails,
+            ]);
+
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($path);
+
+            $annotatedCount = 0;
+            foreach ($ctaDetails as $cta) {
+                // Only draw if coordinates are available
+                if (isset($cta['x'], $cta['y'], $cta['width'], $cta['height'])) {
+                    $x = (int) $cta['x'];
+                    $y = (int) $cta['y'];
+                    $width = (int) $cta['width'];
+                    $height = (int) $cta['height'];
+
+                    // Skip invalid dimensions
+                    if ($width <= 0 || $height <= 0) {
+                        Log::debug('Skipping CTA with invalid dimensions', [
+                            'scan_id' => $this->scan->id,
+                            'cta' => $cta,
+                        ]);
+                        continue;
+                    }
+
+                    // Draw rectangle outline (green #22c55e)
+                    $image->drawRectangle($x, $y, function ($rectangle) use ($width, $height) {
+                        $rectangle->size($width, $height);
+                        $rectangle->border('#22c55e', 3);
+                    });
+                    $annotatedCount++;
+
+                    Log::debug('Drew CTA rectangle', [
+                        'scan_id' => $this->scan->id,
+                        'text' => $cta['text'] ?? 'unknown',
+                        'coords' => [$x, $y, $width, $height],
+                    ]);
+                }
+            }
+
+            Log::info('ANNOTATION_RECTANGLES_DONE', [
+                'scan_id' => $this->scan->id,
+                'annotated_ctas' => $annotatedCount,
+            ]);
+
+            // Draw red horizontal line at 800px to mark the fold
+            $imageWidth = $image->width();
+            $foldY = 800;
+
+            Log::info('ANNOTATION_DRAWING_FOLD_LINE', [
+                'scan_id' => $this->scan->id,
+                'image_width' => $imageWidth,
+                'fold_y' => $foldY,
+            ]);
+
+            $image->drawLine(function ($line) use ($imageWidth, $foldY) {
+                $line->from(0, $foldY);
+                $line->to($imageWidth, $foldY);
+                $line->color('#ef4444');
+                $line->width(2);
+            });
+
+            // Save the annotated image
+            $image->save($path);
+
+            Log::info('ANNOTATION_SAVED', [
+                'scan_id' => $this->scan->id,
+                'path' => $path,
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('ANNOTATION_FAILED', [
+                'scan_id' => $this->scan->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            // Screenshot is still saved without annotations
+        }
+    }
+
+    protected function normalizeText(string $text): string
+    {
+        // Normalize whitespace and convert to lowercase for comparison
+        return strtolower(preg_replace('/\s+/', ' ', trim($text)));
     }
 
     public function failed(Throwable $exception): void
