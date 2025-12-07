@@ -6,6 +6,7 @@
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
         "dev": "vite",
+        "dev:all": "concurrently -k -c \"blue,green,yellow\" -n \"serve,queue,vite\" \"php artisan serve\" \"php artisan queue:work\" \"vite\"",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix"
