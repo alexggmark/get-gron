@@ -39,42 +39,43 @@ class AnalyzeWebsite implements ShouldQueue
         try {
             $this->scan->update(['status' => 'processing']);
 
-            $currentStep = 'fetchUrl';
+            $currentStep = $this->setStep('Fetching page');
             $this->fetchUrl();
 
             $results = [];
 
-            $currentStep = 'analyzeLighthouse';
+            $currentStep = $this->setStep('Analyzing performance');
             $results = [...$results, ...$this->analyzeLighthouse()];
 
-            $currentStep = 'analyzeCtaElements';
+            $currentStep = $this->setStep('Finding call-to-actions');
             $results = [...$results, ...$this->analyzeCtaElements()];
 
-            $currentStep = 'analyzeFormFriction';
+            $currentStep = $this->setStep('Analyzing forms');
             $results = [...$results, ...$this->analyzeFormFriction()];
 
-            $currentStep = 'analyzeTrustSignals';
+            $currentStep = $this->setStep('Checking trust signals');
             $results = [...$results, ...$this->analyzeTrustSignals()];
 
-            $currentStep = 'analyzeMobileViewport';
+            $currentStep = $this->setStep('Testing mobile viewport');
             $results = [...$results, ...$this->analyzeMobileViewport()];
 
-            $currentStep = 'analyzeReadability';
+            $currentStep = $this->setStep('Measuring readability');
             $results = [...$results, ...$this->analyzeReadability()];
 
-            $currentStep = 'analyzeImageOptimization';
+            $currentStep = $this->setStep('Checking images');
             $results = [...$results, ...$this->analyzeImageOptimization()];
 
-            $currentStep = 'analyzeSchemaMarkup';
+            $currentStep = $this->setStep('Detecting schema markup');
             $results = [...$results, ...$this->analyzeSchemaMarkup()];
 
-            $currentStep = 'captureScreenshot';
+            $currentStep = $this->setStep('Capturing screenshot');
             $results['screenshot_path'] = $this->captureScreenshot($results['cta_details'] ?? []);
 
             $currentStep = 'saving results';
             $this->scan->update([
                 ...$results,
                 'status' => 'completed',
+                'current_step' => null,
             ]);
         } catch (Throwable $e) {
             Log::error('Website analysis failed', [
@@ -92,6 +93,13 @@ class AnalyzeWebsite implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    protected function setStep(string $step): string
+    {
+        Log::debug('Setting current_step', ['scan_id' => $this->scan->id, 'step' => $step]);
+        $this->scan->update(['current_step' => $step]);
+        return $step;
     }
 
     protected function fetchUrl(): void

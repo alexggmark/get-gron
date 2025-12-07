@@ -15,6 +15,7 @@ interface Scan {
     url: string;
     cms_type: string | null;
     status: 'pending' | 'processing' | 'completed' | 'failed';
+    current_step: string | null;
     failed_step: string | null;
     lighthouse_performance: number | null;
     lighthouse_accessibility: number | null;
@@ -174,9 +175,9 @@ function submitScan() {
                                 type="submit"
                                 :disabled="!url || isSubmitting"
                             >
-                                <Spinner v-if="isSubmitting" class="size-4 mr-2" />
-                                <Search v-else class="size-4 mr-2" />
-                                Scan
+                            Scan
+                                <Spinner v-if="isSubmitting" class="size-4" />
+                                <Search v-else class="size-4" />
                             </Button>
                         </form>
                     </div>
@@ -212,9 +213,11 @@ function submitScan() {
                         <CardContent class="flex flex-col items-center justify-center text-center">
                             <Spinner class="size-8 mb-4" />
                             <h3 class="text-lg font-medium">Analyzing your website...</h3>
-                            <p class="text-muted-foreground mt-1">
-                                This may take a minute. We're checking performance, CTAs, forms, and more.
-                            </p>
+                            <Transition name="fade" mode="out-in">
+                                <p :key="selectedScan.current_step ?? 'starting'" class="text-muted-foreground mt-1">
+                                    {{ selectedScan.current_step || 'Starting analysis...' }}
+                                </p>
+                            </Transition>
                         </CardContent>
                     </Card>
 
@@ -457,3 +460,15 @@ function submitScan() {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>
