@@ -154,7 +154,7 @@ function submitScan() {
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <div class="flex h-full flex-1 flex-col gap-3 overflow-x-auto rounded-xl p-4">
             <!-- No scan selected - show welcome state -->
             <template v-if="!selectedScan">
                 <div class="flex flex-1 items-center justify-center">
@@ -186,7 +186,7 @@ function submitScan() {
 
             <!-- Scan selected - show results -->
             <template v-else>
-                <div class="max-w-2xl mx-auto w-full space-y-6">
+                <div class="max-w-2xl mx-auto w-full space-y-3">
                     <!-- Header -->
                     <div class="flex items-start justify-between">
                         <div>
@@ -245,7 +245,7 @@ function submitScan() {
                                 <CardDescription>Combined score across all metrics</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-3">
                                     <div
                                         :class="[
                                             'size-24 rounded-full flex items-center justify-center text-3xl font-bold',
@@ -273,7 +273,7 @@ function submitScan() {
                         </Card>
 
                         <!-- Lighthouse Scores -->
-                        <div class="grid gap-4 md:grid-cols-3">
+                        <div class="grid gap-3 md:grid-cols-3">
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Performance</CardDescription>
@@ -323,7 +323,7 @@ function submitScan() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-3">
                                     <div
                                         :class="[
                                             'size-16 rounded-full flex items-center justify-center text-xl font-bold',
@@ -340,8 +340,32 @@ function submitScan() {
                                         </p>
                                     </div>
                                 </div>
-                                <div v-if="selectedScan.cta_details && selectedScan.cta_details.length > 0" class="mt-4 p-4 bg-muted rounded-lg">
-                                    <pre class="text-xs overflow-auto">{{ JSON.stringify(selectedScan.cta_details, null, 2) }}</pre>
+                                <div v-if="selectedScan.cta_details && selectedScan.cta_details.length > 0" class="mt-4 space-y-2">
+                                    <div
+                                        v-for="(cta, index) in selectedScan.cta_details"
+                                        :key="index"
+                                        class="flex items-center gap-3 p-3 bg-muted rounded-lg"
+                                    >
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium truncate">{{ cta.text }}</p>
+                                            <p class="text-xs text-muted-foreground">
+                                                &lt;{{ cta.element }}&gt;
+                                                <span v-if="cta.x !== undefined"> · {{ cta.x }}, {{ cta.y }} · {{ cta.width }}×{{ cta.height }}px</span>
+                                            </p>
+                                        </div>
+                                        <div v-if="cta.issues && cta.issues.length > 0" class="flex flex-wrap gap-1">
+                                            <span
+                                                v-for="(issue, i) in cta.issues"
+                                                :key="i"
+                                                class="px-2 py-0.5 text-xs bg-yellow-500/10 text-yellow-600 rounded"
+                                            >
+                                                {{ issue }}
+                                            </span>
+                                        </div>
+                                        <div v-else class="px-2 py-0.5 text-xs bg-green-500/10 text-green-600 rounded">
+                                            No issues
+                                        </div>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -355,7 +379,7 @@ function submitScan() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-3">
                                     <div
                                         :class="[
                                             'size-16 rounded-full flex items-center justify-center text-xl font-bold',
@@ -379,7 +403,7 @@ function submitScan() {
                         </Card>
 
                         <!-- Additional Metrics Grid -->
-                        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Trust Signals</CardDescription>

@@ -64,6 +64,17 @@ class DashboardController extends Controller
         return $this->formatScan($scan);
     }
 
+    public function destroy(Request $request, Scan $scan): RedirectResponse
+    {
+        if ($scan->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $scan->delete();
+
+        return redirect()->route('dashboard');
+    }
+
     private function formatScan(Scan $scan): array
     {
         return [

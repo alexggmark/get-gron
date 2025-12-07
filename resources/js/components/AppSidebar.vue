@@ -20,7 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, Globe, LayoutGrid, Search } from 'lucide-vue-next';
+import { Globe, LayoutGrid, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -71,6 +71,17 @@ function getStatusColor(status: string): string {
         case 'processing': return 'text-blue-500';
         default: return 'text-muted-foreground';
     }
+}
+
+function deleteScan(scanId: number, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!confirm('Are you sure you want to delete this scan?')) {
+        return;
+    }
+
+    router.delete(`/dashboard/scan/${scanId}`);
 }
 
 const mainNavItems: NavItem[] = [
@@ -130,22 +141,29 @@ const mainNavItems: NavItem[] = [
                     <SidebarGroupLabel>Recent Scans</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            <SidebarMenuItem v-for="scan in userScans" :key="scan.id">
+                            <SidebarMenuItem v-for="scan in userScans" :key="scan.id" class="group/scan">
                                 <SidebarMenuButton as-child size="sm">
                                     <Link :href="`/dashboard/scan/${scan.id}`" class="flex items-center gap-2">
                                         <Globe class="size-4 shrink-0" :class="getStatusColor(scan.status)" />
                                         <span class="truncate flex-1">{{ formatUrl(scan.url) }}</span>
                                         <span
                                             v-if="scan.status === 'completed' && scan.overall_score !== null"
-                                            class="text-xs font-medium"
+                                            class="text-xs font-medium group-hover/scan:hidden"
                                             :class="scan.overall_score >= 70 ? 'text-green-500' : scan.overall_score >= 50 ? 'text-yellow-500' : 'text-red-500'"
                                         >
                                             {{ scan.overall_score }}
                                         </span>
                                         <Spinner
                                             v-else-if="['pending', 'processing'].includes(scan.status)"
-                                            class="size-3"
+                                            class="size-3 group-hover/scan:hidden"
                                         />
+                                        <button
+                                            @click="deleteScan(scan.id, $event)"
+                                            class="hidden group-hover/scan:block p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                                            title="Delete scan"
+                                        >
+                                            <Trash2 class="size-3" />
+                                        </button>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

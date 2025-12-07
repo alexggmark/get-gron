@@ -44,13 +44,13 @@ class AnalyzeWebsite implements ShouldQueue
 
             $results = [];
 
-            $currentStep = $this->setStep('Analyzing performance');
+            $currentStep = $this->setStep('Analysing Lighthouse scores');
             $results = [...$results, ...$this->analyzeLighthouse()];
 
             $currentStep = $this->setStep('Finding call-to-actions');
             $results = [...$results, ...$this->analyzeCtaElements()];
 
-            $currentStep = $this->setStep('Analyzing forms');
+            $currentStep = $this->setStep('Analysing forms');
             $results = [...$results, ...$this->analyzeFormFriction()];
 
             $currentStep = $this->setStep('Checking trust signals');
@@ -301,20 +301,36 @@ class AnalyzeWebsite implements ShouldQueue
                     const elements = document.querySelectorAll(selectors);
                     const results = [];
 
-                    elements.forEach(el => {
+                    // Helper to check if element or any descendant contains a CTA pattern
+                    function findCtaPattern(el) {
                         const text = (el.textContent || '').toLowerCase().trim();
                         for (const pattern of patterns) {
                             if (text.includes(pattern)) {
-                                const rect = el.getBoundingClientRect();
-                                results.push({
-                                    text: (el.textContent || '').trim(),
-                                    x: Math.round(rect.left + window.scrollX),
-                                    y: Math.round(rect.top + window.scrollY),
-                                    width: Math.round(rect.width),
-                                    height: Math.round(rect.height)
-                                });
-                                break;
+                                return pattern;
                             }
+                        }
+                        return null;
+                    }
+
+                    elements.forEach(el => {
+                        const matchedPattern = findCtaPattern(el);
+                        if (matchedPattern) {
+                            const rect = el.getBoundingClientRect();
+                            const width = Math.round(rect.width);
+                            const height = Math.round(rect.height);
+
+                            // Skip hidden elements (0 width or 0 height)
+                            if (width === 0 || height === 0) {
+                                return;
+                            }
+
+                            results.push({
+                                text: (el.textContent || '').trim(),
+                                x: Math.round(rect.left + window.scrollX),
+                                y: Math.round(rect.top + window.scrollY),
+                                width: width,
+                                height: height
+                            });
                         }
                     });
 
@@ -324,7 +340,7 @@ class AnalyzeWebsite implements ShouldQueue
             JS;
 
             $result = Browsershot::url($this->scan->url)
-                ->windowSize(1920, 1080)
+                ->windowSize(1480, 1080)
                 ->setOption('waitUntil', 'domcontentloaded')
                 ->timeout(60000)
                 ->delay(3000)
@@ -855,8 +871,8 @@ class AnalyzeWebsite implements ShouldQueue
             // Limited height prevents memory issues during annotation
             // fullPage(false) ensures we only capture the viewport, not the entire scrollable page
             Browsershot::url($this->scan->url)
-                ->windowSize(1920, 2000)              // viewport
-                ->clip(0, 0, 1920, 2000)              // x, y, width, height
+                ->windowSize(1480, 2000)              // viewport
+                ->clip(0, 0, 1480, 2000)              // x, y, width, height
                 ->setOption('waitUntil', 'domcontentloaded')
                 ->timeout(20000)
                 ->delay(3000)

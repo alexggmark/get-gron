@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/scan/{scan}', [DashboardController::class, 'show'])->name('dashboard.scan');
     Route::post('dashboard/scan', [DashboardController::class, 'store'])->middleware('throttle:scans')->name('dashboard.scan.store');
     Route::get('dashboard/scan/{scan}/status', [DashboardController::class, 'scanStatus'])->name('dashboard.scan.status');
+    Route::delete('dashboard/scan/{scan}', [DashboardController::class, 'destroy'])->name('dashboard.scan.destroy');
 });
 
 Route::get('scan', [ScanController::class, 'create'])->name('scan.create');
