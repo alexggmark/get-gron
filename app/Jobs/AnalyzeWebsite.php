@@ -934,7 +934,7 @@ class AnalyzeWebsite implements ShouldQueue
                 $line->from(0, $foldY);
                 $line->to($imageWidth, $foldY);
                 $line->color('#ef4444');
-                $line->width(2);
+                $line->width(8);
             });
 
             // Save the annotated image

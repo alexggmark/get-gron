@@ -269,20 +269,6 @@ function submitScan() {
                             </CardContent>
                         </Card>
 
-                        <!-- Screenshot -->
-                        <Card v-if="selectedScan.screenshot_url">
-                            <CardHeader>
-                                <CardTitle>Page Screenshot</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <img
-                                    :src="selectedScan.screenshot_url"
-                                    :alt="`Screenshot of ${selectedScan.url}`"
-                                    class="rounded-lg border w-full"
-                                />
-                            </CardContent>
-                        </Card>
-
                         <!-- Lighthouse Scores -->
                         <div class="grid gap-4 md:grid-cols-3">
                             <Card>
@@ -310,6 +296,20 @@ function submitScan() {
                                 </CardHeader>
                             </Card>
                         </div>
+
+                        <!-- Screenshot -->
+                        <Card v-if="selectedScan.screenshot_url">
+                            <CardHeader>
+                                <CardTitle>Page Screenshot</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <img
+                                    :src="selectedScan.screenshot_url"
+                                    :alt="`Screenshot of ${selectedScan.url}`"
+                                    class="rounded-lg border w-full"
+                                />
+                            </CardContent>
+                        </Card>
 
                         <!-- CTA Analysis -->
                         <Card>
