@@ -279,6 +279,13 @@ class AnalyzeWebsite implements ShouldQueue
         try {
             $patternsJson = json_encode($ctaPatterns);
 
+            Log::debug('ALEX DEBUG – ', [
+                'cta_patterns' => $ctaPatterns,
+                'patternsJson' => $patternsJson
+            ]);
+
+            // Encode result as base64 to avoid type coercion issues in Browsershot 5.x
+            // (ChromiumResult::$result is typed as string, but evaluate() can return arrays)
             $script = <<<JS
                 (() => {
                     const patterns = {$patternsJson};
@@ -287,12 +294,12 @@ class AnalyzeWebsite implements ShouldQueue
                     const results = [];
 
                     elements.forEach(el => {
-                        const text = el.textContent.toLowerCase().trim();
+                        const text = (el.textContent || '').toLowerCase().trim();
                         for (const pattern of patterns) {
                             if (text.includes(pattern)) {
                                 const rect = el.getBoundingClientRect();
                                 results.push({
-                                    text: el.textContent.trim(),
+                                    text: (el.textContent || '').trim(),
                                     x: Math.round(rect.left + window.scrollX),
                                     y: Math.round(rect.top + window.scrollY),
                                     width: Math.round(rect.width),
@@ -303,22 +310,32 @@ class AnalyzeWebsite implements ShouldQueue
                         }
                     });
 
-                    return results;
+                    // Encode as base64 to ensure it stays as a string through all layers
+                    return btoa(JSON.stringify(results));
                 })();
             JS;
 
-            $coordinates = Browsershot::url($this->scan->url)
+            $result = Browsershot::url($this->scan->url)
                 ->windowSize(1920, 1080)
                 ->setOption('waitUntil', 'domcontentloaded')
                 ->timeout(60000)
                 ->delay(3000)
                 ->evaluate($script);
 
+            // Decode base64, then JSON
+            $json = base64_decode($result);
+            $coordinates = json_decode($json, true);
+
+            Log::debug('ALEX DEBUG 2 – ', [
+                '$json' => $json,
+                '$coordinates' => $coordinates
+            ]);
+
             return is_array($coordinates) ? $coordinates : [];
         } catch (Throwable $e) {
             Log::warning('Failed to get CTA coordinates', [
                 'scan_id' => $this->scan->id,
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ]);
 
             return [];
@@ -519,7 +536,9 @@ class AnalyzeWebsite implements ShouldQueue
                 ->timeout(60000)
                 ->delay(3000);
 
-            $pageWidth = $browsershot->evaluate('document.documentElement.scrollWidth');
+            // Return as string to avoid type coercion issues in Browsershot 5.x
+            $pageWidthResult = $browsershot->evaluate('String(document.documentElement.scrollWidth)');
+            $pageWidth = (int) $pageWidthResult;
             $viewportWidth = 375;
 
             if ($pageWidth > $viewportWidth + 10) { // 10px tolerance
