@@ -954,11 +954,39 @@ class AnalyzeWebsite implements ShouldQueue
                 'fold_y' => $foldY,
             ]);
 
-            $image->drawLine(function ($line) use ($imageWidth, $foldY) {
-                $line->from(0, $foldY);
-                $line->to($imageWidth, $foldY);
-                $line->color('#ef4444');
-                $line->width(8);
+            // Draw thick dotted line using rectangles instead of lines
+            $dashLength = 28;
+            $gapLength = 16;
+            $lineThickness = 8;
+            $x = 0;
+
+            while ($x < $imageWidth) {
+                $dashWidth = min($dashLength, $imageWidth - $x);
+                $image->drawRectangle($x, $foldY - ($lineThickness / 2), function ($rectangle) use ($dashWidth, $lineThickness) {
+                    $rectangle->size($dashWidth, $lineThickness);
+                    $rectangle->background('#ef4444');
+                });
+                $x += $dashLength + $gapLength;
+            }
+
+            // Add "Screen fold" label
+            $labelText = 'Screen fold';
+            $labelPadding = 12;
+            $labelHeight = 32;
+            $labelWidth = 130;
+            $labelX = 12;
+            $labelY = $foldY - $labelHeight - 6;
+
+            // Draw label background
+            $image->drawRectangle($labelX, $labelY, function ($rectangle) use ($labelWidth, $labelHeight) {
+                $rectangle->size($labelWidth, $labelHeight);
+                $rectangle->background('#ef4444');
+            });
+
+            // Draw label text
+            $image->text($labelText, $labelX + $labelPadding, $labelY + 22, function ($font) {
+                $font->size(24);
+                $font->color('#ffffff');
             });
 
             // Save the annotated image

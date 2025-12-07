@@ -9,11 +9,7 @@ import { Head } from '@inertiajs/vue3'
 import { create, store } from '@/routes/scan'
 import { type BreadcrumbItem } from '@/types'
 
-interface Props {
-    cmsTypes: Record<string, string>
-}
-
-const props = defineProps<Props>()
+defineProps()
 
 // const breadcrumbs: BreadcrumbItem[] = [
 //     { title: 'Scans', href: create.url() },
@@ -22,7 +18,6 @@ const props = defineProps<Props>()
 
 const form = useForm({
     url: '',
-    cms_type: '',
 })
 
 function submit() {
@@ -56,23 +51,6 @@ function submit() {
                             />
                             <p v-if="form.errors.url" class="text-sm text-destructive">
                                 {{ form.errors.url }}
-                            </p>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label for="cms_type">CMS Type (Optional)</Label>
-                            <select
-                                id="cms_type"
-                                v-model="form.cms_type"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            >
-                                <option value="">Select CMS type...</option>
-                                <option v-for="(label, value) in cmsTypes" :key="value" :value="value">
-                                    {{ label }}
-                                </option>
-                            </select>
-                            <p v-if="form.errors.cms_type" class="text-sm text-destructive">
-                                {{ form.errors.cms_type }}
                             </p>
                         </div>
 

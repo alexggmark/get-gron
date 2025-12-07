@@ -10,7 +10,6 @@ import { type BreadcrumbItem } from '@/types'
 interface Scan {
     id: number
     url: string
-    cms_type: string | null
     status: 'pending' | 'processing' | 'completed' | 'failed'
     failed_step: string | null
     lighthouse_performance: number | null
@@ -115,7 +114,6 @@ function formatScore(score: number | null): string {
                     <div>
                         <h1 class="text-2xl font-bold tracking-tight">{{ scan.url }}</h1>
                         <p class="text-muted-foreground">
-                            <span v-if="scan.cms_type" class="capitalize">{{ scan.cms_type }} &middot; </span>
                             Scanned {{ new Date(scan.created_at).toLocaleDateString() }}
                         </p>
                     </div>

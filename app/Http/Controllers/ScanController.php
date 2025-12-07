@@ -13,30 +13,18 @@ class ScanController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Scan/Create', [
-            'cmsTypes' => [
-                'wordpress' => 'WordPress',
-                'shopify' => 'Shopify',
-                'woocommerce' => 'WooCommerce',
-                'magento' => 'Magento',
-                'squarespace' => 'Squarespace',
-                'wix' => 'Wix',
-                'custom' => 'Custom / Other',
-            ],
-        ]);
+        return Inertia::render('Scan/Create');
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'url' => ['required', 'url', 'max:2048'],
-            'cms_type' => ['nullable', 'string', 'in:wordpress,shopify,woocommerce,magento,squarespace,wix,custom'],
         ]);
 
         $scan = Scan::create([
             'user_id' => $request->user()?->id,
             'url' => $validated['url'],
-            'cms_type' => $validated['cms_type'] ?? null,
             'status' => 'pending',
         ]);
 
@@ -51,7 +39,6 @@ class ScanController extends Controller
             'scan' => [
                 'id' => $scan->id,
                 'url' => $scan->url,
-                'cms_type' => $scan->cms_type,
                 'status' => $scan->status,
                 'failed_step' => $scan->failed_step,
                 'lighthouse_performance' => $scan->lighthouse_performance,

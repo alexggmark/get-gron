@@ -10,7 +10,6 @@ class Scan extends Model
     protected $fillable = [
         'user_id',
         'url',
-        'cms_type',
         'status',
         'current_step',
         'failed_step',

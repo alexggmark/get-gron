@@ -80,7 +80,6 @@ class DashboardController extends Controller
         return [
             'id' => $scan->id,
             'url' => $scan->url,
-            'cms_type' => $scan->cms_type,
             'status' => $scan->status,
             'current_step' => $scan->current_step,
             'failed_step' => $scan->failed_step,

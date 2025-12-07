@@ -13,7 +13,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 interface Scan {
     id: number;
     url: string;
-    cms_type: string | null;
     status: 'pending' | 'processing' | 'completed' | 'failed';
     current_step: string | null;
     failed_step: string | null;
@@ -192,7 +191,6 @@ function submitScan() {
                         <div>
                             <h1 class="text-2xl font-bold tracking-tight">{{ selectedScan.url }}</h1>
                             <p class="text-muted-foreground">
-                                <span v-if="selectedScan.cms_type" class="capitalize">{{ selectedScan.cms_type }} &middot; </span>
                                 Scanned {{ new Date(selectedScan.created_at).toLocaleDateString() }}
                             </p>
                         </div>
