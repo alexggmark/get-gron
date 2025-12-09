@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
+import LoaderImages from '@/components/LoaderImages.vue';
 import { Input } from '@/components/ui/input';
 import { Head, router } from '@inertiajs/vue3';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -66,10 +67,27 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 });
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const dotsInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const dots = ref('.');
 
 const isLoading = computed(() =>
     props.selectedScan && ['pending', 'processing'].includes(props.selectedScan.status)
 );
+
+function startDotsAnimation() {
+    if (dotsInterval.value) return;
+    dotsInterval.value = setInterval(() => {
+        dots.value = dots.value.length >= 3 ? '' : dots.value + '.';
+    }, 400);
+}
+
+function stopDotsAnimation() {
+    if (dotsInterval.value) {
+        clearInterval(dotsInterval.value);
+        dotsInterval.value = null;
+        dots.value = '.';
+    }
+}
 
 function startPolling() {
     if (pollingInterval.value) return;
@@ -89,19 +107,23 @@ function stopPolling() {
 watch(() => props.selectedScan?.status, (newStatus) => {
     if (newStatus && ['pending', 'processing'].includes(newStatus)) {
         startPolling();
+        startDotsAnimation();
     } else {
         stopPolling();
+        stopDotsAnimation();
     }
 }, { immediate: true });
 
 onMounted(() => {
     if (isLoading.value) {
         startPolling();
+        startDotsAnimation();
     }
 });
 
 onUnmounted(() => {
     stopPolling();
+    stopDotsAnimation();
 });
 
 function formatUrl(fullUrl: string): string {
@@ -159,6 +181,13 @@ function submitScan() {
             <template v-if="!selectedScan">
                 <div class="flex flex-1 items-center justify-center">
                     <div class="text-center max-w-md">
+                        <div class="flex justify-center">
+                            <div class="max-w-72">
+                                <!-- <LoaderImages /> -->
+                                <img src="/storage/assets/Wink black.png" />
+                            </div>
+                        </div>
+
                         <h2 class="text-2xl font-bold tracking-tight mb-2">Scan a Website</h2>
                         <p class="text-muted-foreground mb-6">
                             Enter a URL to analyze its performance, CTAs, forms, and more.
@@ -210,11 +239,13 @@ function submitScan() {
                     <!-- Loading State -->
                     <Card v-if="isLoading" class="py-12">
                         <CardContent class="flex flex-col items-center justify-center text-center">
-                            <Spinner class="size-8 mb-4" />
-                            <h3 class="text-lg font-medium">Analyzing your website...</h3>
+                            <div class="max-w-56 h-40">
+                                <LoaderImages />
+                            </div>
+                            <h3 class="text-lg font-medium">Analysing your website{{ dots }}</h3>
                             <Transition name="fade" mode="out-in">
                                 <p :key="selectedScan.current_step ?? 'starting'" class="text-muted-foreground mt-1">
-                                    {{ selectedScan.current_step || 'Starting analysis...' }}
+                                    {{ selectedScan.current_step || 'Starting analysis' }}
                                 </p>
                             </Transition>
                         </CardContent>

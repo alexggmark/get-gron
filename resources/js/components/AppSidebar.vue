@@ -159,7 +159,7 @@ const mainNavItems: NavItem[] = [
                                         />
                                         <button
                                             @click="deleteScan(scan.id, $event)"
-                                            class="hidden group-hover/scan:block p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                                            class="hidden group-hover/scan:block cursor-pointer p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
                                             title="Delete scan"
                                         >
                                             <Trash2 class="size-3" />
