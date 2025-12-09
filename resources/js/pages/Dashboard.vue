@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Head, router } from '@inertiajs/vue3';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -304,11 +305,13 @@ function submitScan() {
                                 <CardTitle>Page Screenshot</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <img
-                                    :src="selectedScan.screenshot_url"
-                                    :alt="`Screenshot of ${selectedScan.url}`"
-                                    class="rounded-lg border w-full"
-                                />
+                                <ScrollArea class="h-96 w-full rounded-lg p-1.5 border">
+                                    <img
+                                        :src="selectedScan.screenshot_url"
+                                        :alt="`Screenshot of ${selectedScan.url}`"
+                                        class="border w-full"
+                                    />
+                                </ScrollArea>
                             </CardContent>
                         </Card>
 
@@ -338,33 +341,35 @@ function submitScan() {
                                         </p>
                                     </div>
                                 </div>
-                                <div v-if="selectedScan.cta_details && selectedScan.cta_details.length > 0" class="mt-4 space-y-2">
-                                    <div
-                                        v-for="(cta, index) in selectedScan.cta_details"
-                                        :key="index"
-                                        class="flex items-center gap-3 p-3 bg-muted rounded-lg"
-                                    >
-                                        <div class="flex-1 min-w-0">
-                                            <p class="font-medium truncate">{{ cta.text }}</p>
-                                            <p class="text-xs text-muted-foreground">
-                                                &lt;{{ cta.element }}&gt;
-                                                <span v-if="cta.x !== undefined"> · {{ cta.x }}, {{ cta.y }} · {{ cta.width }}×{{ cta.height }}px</span>
-                                            </p>
-                                        </div>
-                                        <div v-if="cta.issues && cta.issues.length > 0" class="flex flex-wrap gap-1">
-                                            <span
-                                                v-for="(issue, i) in cta.issues"
-                                                :key="i"
-                                                class="px-2 py-0.5 text-xs bg-yellow-500/10 text-yellow-600 rounded"
-                                            >
-                                                {{ issue }}
-                                            </span>
-                                        </div>
-                                        <div v-else class="px-2 py-0.5 text-xs bg-green-500/10 text-green-600 rounded">
-                                            No issues
+                                <ScrollArea class="h-96 w-full rounded-lg border mt-4 p-1.5">
+                                    <div v-if="selectedScan.cta_details && selectedScan.cta_details.length > 0" class="space-y-2">
+                                        <div
+                                            v-for="(cta, index) in selectedScan.cta_details"
+                                            :key="index"
+                                            class="flex items-center gap-3 p-3 bg-muted rounded-md"
+                                        >
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium truncate">{{ cta.text }}</p>
+                                                <p class="text-xs text-muted-foreground">
+                                                    &lt;{{ cta.element }}&gt;
+                                                    <span v-if="cta.x !== undefined"> · {{ cta.x }}, {{ cta.y }} · {{ cta.width }}×{{ cta.height }}px</span>
+                                                </p>
+                                            </div>
+                                            <div v-if="cta.issues && cta.issues.length > 0" class="flex flex-wrap gap-1">
+                                                <span
+                                                    v-for="(issue, i) in cta.issues"
+                                                    :key="i"
+                                                    class="px-2 py-0.5 text-xs bg-yellow-500/10 text-yellow-600 rounded"
+                                                >
+                                                    {{ issue }}
+                                                </span>
+                                            </div>
+                                            <div v-else class="px-2 py-0.5 text-xs bg-green-500/10 text-green-600 rounded">
+                                                No issues
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </ScrollArea>
                             </CardContent>
                         </Card>
 
