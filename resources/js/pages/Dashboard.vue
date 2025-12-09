@@ -185,7 +185,7 @@ function submitScan() {
 
             <!-- Scan selected - show results -->
             <template v-else>
-                <div class="max-w-2xl mx-auto w-full space-y-3">
+                <div class="max-w-2xl mx-auto w-full space-y-2">
                     <!-- Header -->
                     <div class="flex items-start justify-between">
                         <div>
@@ -271,7 +271,7 @@ function submitScan() {
                         </Card>
 
                         <!-- Lighthouse Scores -->
-                        <div class="grid gap-3 md:grid-cols-3">
+                        <div class="grid gap-2 md:grid-cols-3">
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Performance</CardDescription>
@@ -401,7 +401,7 @@ function submitScan() {
                         </Card>
 
                         <!-- Additional Metrics Grid -->
-                        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Trust Signals</CardDescription>

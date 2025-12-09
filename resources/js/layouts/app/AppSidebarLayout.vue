@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import type { BreadcrumbItemType } from '@/types';
+import { ref, onMounted } from 'vue';
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
@@ -12,6 +13,15 @@ interface Props {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+const isVisible = ref(false);
+
+onMounted(() => {
+    // Small delay to ensure smooth animation
+    requestAnimationFrame(() => {
+        isVisible.value = true;
+    });
+});
 </script>
 
 <template>
@@ -19,7 +29,12 @@ withDefaults(defineProps<Props>(), {
         <AppSidebar />
         <AppContent variant="sidebar" class="overflow-x-hidden">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-            <slot />
+            <div
+                class="transition-all duration-500 ease-out"
+                :class="isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'"
+            >
+                <slot />
+            </div>
         </AppContent>
     </AppShell>
 </template>

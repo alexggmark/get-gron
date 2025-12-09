@@ -53,12 +53,12 @@
   --primary-foreground: oklch(1.00 0 0);
   --secondary: oklch(0.92 0.07 76.67);
   --secondary-foreground: oklch(0.35 0.07 41.41);
-  --muted: oklch(0.95 0 0);
+  --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.50 0 0);
   --accent: oklch(0.93 0 0);
   --accent-foreground: oklch(0.24 0 0);
   --destructive: oklch(0.63 0.19 33.26);
-  --border: oklch(0.88 0 0);
+  --border: oklch(0.94 0 0);
   --input: oklch(0.88 0 0);
   --ring: oklch(0.43 0.04 42.00);
   --chart-1: oklch(0.43 0.04 42.00);
@@ -189,7 +189,7 @@
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        @apply border-border outline-ring/20;
     }
     body {
         @apply bg-background text-foreground;
