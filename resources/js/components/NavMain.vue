@@ -18,7 +18,7 @@ const page = usePage();
 </script>
 
 <template>
-    <SidebarGroup class="px-2 py-0">
+    <SidebarGroup class="px-2 py-2">
         <SidebarGroupLabel>Platform</SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">

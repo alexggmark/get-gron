@@ -186,18 +186,18 @@ function submitScan() {
 
             <!-- Scan selected - show results -->
             <template v-else>
-                <div class="max-w-2xl mx-auto w-full space-y-2">
+                <div class="max-w-2xl mx-auto w-full space-y-2 pt-4">
                     <!-- Header -->
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h1 class="text-2xl font-bold tracking-tight">{{ selectedScan.url }}</h1>
-                            <p class="text-muted-foreground">
+                    <div class="flex items-end justify-between">
+                        <div class="my-2">
+                            <h1 class="text-xl font-bold tracking-tight mb-1">{{ selectedScan.url }}</h1>
+                            <p class="text-muted-foreground text-sm">
                                 Scanned {{ new Date(selectedScan.created_at).toLocaleDateString() }}
                             </p>
                         </div>
                         <div
                             :class="[
-                                'px-3 py-1 rounded-full text-sm font-medium capitalize',
+                                'px-3 py-1 my-2 rounded-full text-xs font-medium capitalize',
                                 selectedScan.status === 'completed' ? 'bg-green-500/10 text-green-500' : '',
                                 selectedScan.status === 'failed' ? 'bg-red-500/10 text-red-500' : '',
                                 ['pending', 'processing'].includes(selectedScan.status) ? 'bg-blue-500/10 text-blue-500' : '',
@@ -247,7 +247,7 @@ function submitScan() {
                                 <div class="flex items-center gap-3">
                                     <div
                                         :class="[
-                                            'size-24 rounded-full flex items-center justify-center text-3xl font-bold',
+                                            'size-24 rounded-full flex items-center justify-center text-2xl font-bold',
                                             getScoreBgColor(selectedScan.overall_score),
                                             getScoreColor(selectedScan.overall_score),
                                         ]"
@@ -276,7 +276,7 @@ function submitScan() {
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Performance</CardDescription>
-                                    <CardTitle :class="['text-3xl', getScoreColor(selectedScan.lighthouse_performance)]">
+                                    <CardTitle :class="['text-2xl', getScoreColor(selectedScan.lighthouse_performance)]">
                                         {{ formatScore(selectedScan.lighthouse_performance) }}
                                     </CardTitle>
                                 </CardHeader>
@@ -284,7 +284,7 @@ function submitScan() {
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>Accessibility</CardDescription>
-                                    <CardTitle :class="['text-3xl', getScoreColor(selectedScan.lighthouse_accessibility)]">
+                                    <CardTitle :class="['text-2xl', getScoreColor(selectedScan.lighthouse_accessibility)]">
                                         {{ formatScore(selectedScan.lighthouse_accessibility) }}
                                     </CardTitle>
                                 </CardHeader>
@@ -292,7 +292,7 @@ function submitScan() {
                             <Card>
                                 <CardHeader class="pb-2">
                                     <CardDescription>SEO</CardDescription>
-                                    <CardTitle :class="['text-3xl', getScoreColor(selectedScan.lighthouse_seo)]">
+                                    <CardTitle :class="['text-2xl', getScoreColor(selectedScan.lighthouse_seo)]">
                                         {{ formatScore(selectedScan.lighthouse_seo) }}
                                     </CardTitle>
                                 </CardHeader>
