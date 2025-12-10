@@ -39,7 +39,7 @@ defineProps<{
             v-slot="{ errors, processing }"
             class="flex flex-col gap-6"
         >
-            <div class="grid gap-6">
+            <div class="grid gap-2">
                 <div class="grid gap-2">
                     <Label for="email">Email address</Label>
                     <Input
@@ -58,14 +58,14 @@ defineProps<{
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
                         <Label for="password">Password</Label>
-                        <TextLink
+                        <!-- <TextLink
                             v-if="canResetPassword"
                             :href="request()"
                             class="text-sm"
                             :tabindex="5"
                         >
                             Forgot password?
-                        </TextLink>
+                        </TextLink> -->
                     </div>
                     <Input
                         id="password"
